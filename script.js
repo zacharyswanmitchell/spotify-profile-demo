@@ -1,6 +1,6 @@
 const clientId = "6bd4659bf498406fbe83c85dcb9045c0";
 const params = new URLSearchParams(window.location.search);
-const code = undefined;
+const code = params.get("code");
 
 if (!code) {
 	redirectToAuthCodeFlow(clientId);
@@ -49,8 +49,25 @@ async function generateCodeChallenge(codeVerifier) {
 }
 
 export async function getAccessToken(clientId, code) {
-	// TODO: Exchange code for access token
-}
+    // TODO: Exchange code for access token
+    const verifier = localStorage.getItem("verifier");
+
+    const params = new URLSearchParams();
+    params.append("client_id", clientId);
+    params.append("grant_type", "authorization_code");
+    params.append("code", code);
+    params.append("redirect_uri", "http://localhost:5173/callback");
+    params.append("code_verifier", verifier);
+
+    const result = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        }, body: params
+    });
+
+    const { access_token } = await result.json();
+    return access_token;
 
 async function fetchProfile(token) {
 	// TODO: Fetch user profile from Spotify API
